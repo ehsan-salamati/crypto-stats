@@ -25,7 +25,7 @@ services:
       APP_PORT: 5001
       MONGODB_DATABASE: crypto_signal
       MONGODB_USERNAME: crypto-signal
-      MONGODB_PASSWORD: Hendoone1122
+      MONGODB_PASSWORD: Hendoone1122 # move to secrets
       MONGODB_HOSTNAME: mongodb
     ports:
       - "5001:5001"

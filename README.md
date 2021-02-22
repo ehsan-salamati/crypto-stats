@@ -17,24 +17,67 @@ Development branch to testing new features. This develop version has a lot of im
 
 
 ## Installing And Running
-Because this is a development branch you need to build your custom Docker image. The commands listed below are intended to be run in a terminal.
-
-Be sure you have git installed in your system.
-
-1. Clone this repo `git clone https://github.com/w1ld3r/crypto-signal.git`
-
-1. Enter to cripto-signal folder `cd crypto-signal`
-
-1. Switch to develop branch `git checkout develop`
- 
 1. Create a config.yml file and put it into "app" folder.
 
-1. Build your own Docker image, for example, `docker build -t dev/crypto-signals:latest .`
+2. run `docker-compose up`
 
-1. For testing and debugging run docker with "-t" option `docker run --rm -ti -v  $PWD/app:/app dev/crypto-signals:latest`
+3. to work with mongoDB -> https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
 
-1. For production run in daemon mode using "-d" option `docker run --rm -di -v  $PWD/app:/app dev/crypto-signals:latest`
+##Creating a User for Your MongoDB Database
+By default, MongoDB allows users to log in without credentials and grants unlimited privileges. In this step, you will secure your MongoDB database by creating a dedicated user to access it.
 
+To do this, you will need the root username and password that you set in the docker-compose.yml file environment variables MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD for the mongodb service. In general, it’s better to avoid using the root administrative account when interacting with the database. Instead, you will create a dedicated database user for your Flask application, as well as a new database that the Flask app will be allowed to access.
+
+To create a new user, first start an interactive shell on the mongodb container:
+
+`docker exec -it mongodb bash`
+ 
+You use the docker exec command in order to run a command inside a running container along with the -it flag to run an interactive shell inside the container.
+
+Once inside the container, log in to the MongoDB root administrative account:
+
+`mongo -u mongodbuser -p`
+ 
+You will be prompted for the password that you entered as the value for the MONGO_INITDB_ROOT_PASSWORD variable in the docker-compose.yml file. The password can be changed by setting a new value for the MONGO_INITDB_ROOT_PASSWORD in the mongodb service, in which case you will have to re-run the docker-compose up -d command.
+
+Run the show dbs; command to list all databases:
+
+show dbs;
+ 
+You will see the following output:
+
+`Output
+admin    0.000GB
+config   0.000GB
+local    0.000GB
+5 rows in set (0.00 sec)`
+
+The admin database is a special database that grants administrative permissions to users. If a user has read access to the admin database, they will have read and write permissions to all other databases. Since the output lists the admin database, the user has access to this database and can therefore read and write to all other databases.
+
+Saving the first to-do note will automatically create the MongoDB database. MongoDB allows you to switch to a database that does not exist using the use database command. It creates a database when a document is saved to a collection. Therefore the database is not created here; that will happen when you save your first to-do note in the database from the API. Execute the use command to switch to the flaskdb database:
+
+`use crypto_signal`
+ 
+Next, create a new user that will be allowed to access this database:
+
+`db.createUser({user: 'crypto-signal', pwd: 'your password', roles: [{role: 'readWrite', db: 'crypto_signal'}]})
+exit`
+ 
+This command creates a user named flaskuser with readWrite access to the flaskdb database. Be sure to use a secure password in the pwd field. The user and pwd here are the values you defined in the docker-compose.yml file under the environment variables section for the flask service.
+
+Log in to the authenticated database with the following command:
+
+`mongo -u crypto-signal -p your password --authenticationDatabase crypto_signal`
+ 
+Now that you have added the user, log out of the database.
+
+`exit`
+ 
+And finally, exit the container:
+
+`exit`
+ 
+You’ve now configured a dedicated database and user account for your Flask application. The database components are ready, so now you can move on to running the Flask to-do app.
 
 ### Configuring config.yml
 
