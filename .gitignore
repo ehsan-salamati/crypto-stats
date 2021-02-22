@@ -1,0 +1,7 @@
+.env
+settings.env
+app/config.yml
+.vscode
+.idea/
+lib/ta-lib/
+app/charts

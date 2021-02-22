@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  webhooks:
+    build:
+      context: ./webhooks
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    image: crypto-signal-webhooks:latest    
+  app:
+    image: shadowreaver/crypto-signal:latest
+    volumes:
+      - ./app:/app
+      - ./app/config.yml:/app/config.yml
+    depends_on:
+      - webhooks

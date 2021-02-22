@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: crypto-signal-app
+    image: crypto-signal:latest7
+    volumes:
+      - ./app:/app
+      - ./app/config.yml:/app/config.yml
+    depends_on:
+      - webhooks
+    networks:
+      - backend
+      - frontend
+  webhooks:
+    build:
+      context: ./webhooks
+      dockerfile: Dockerfile
+    container_name: crypto-signal-webhooks
+    restart: unless-stopped
+    image: crypto-signal-webhooks:latest34
+    environment:
+      # APP_ENV: "prod"
+      APP_PORT: 5001
+      MONGODB_DATABASE: crypto_signal
+      MONGODB_USERNAME: crypto-signal
+      MONGODB_PASSWORD: Hendoone1122
+      MONGODB_HOSTNAME: mongodb
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+  mongodb:
+    image: mongo:4.0.8
+    container_name: mongodb
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: crypto_signal
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - backend
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+volumes:
+  mongodbdata:
+    driver: local
